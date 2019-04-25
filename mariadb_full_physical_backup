@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# The account necessary for making backups already exists in the db, named relapbackup.
+# Login settings for the backup account are located in /etc/mysql/mariadb.conf.d/50-server.cnf at the end of the file.
+# The application used for backup comes with mariadb server on debian 9 and its called maraiadb-backup. 
+
+BACKUPPATH="/var/backups/mariadb/physical_backups/"
+BACKUPNAME="backup-"`date +"%d%m%Y"`
+
+# Checking if backup folder exists
+if [ ! -d "$BACKUPPATH$BACKUPNAME" ]; then
+  mkdir -p "$BACKUPPATH$BACKUPNAME"
+fi
+
+# Make backup after there is no pending queries to finish execution.
+mariabackup --backup --target-dir "$BACKUPDIR" --ftwrl-wait-query-type=ALL
+
+# Delete all backups older than 7 days
+find $BACKUPPATH -mindepth 1 -maxdepth 1 -mtime +7 -exec rm -f {} \;
